@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Dalswin School Chatbot</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
   <style>
     :root {
       --primary-green: #4a9c82;
@@ -17,6 +18,7 @@
       --header-gradient: linear-gradient(135deg, var(--primary-green) 0%, var(--light-green) 100%);
       --background-gradient: linear-gradient(135deg, var(--silver) 0%, var(--milk) 100%);
       --shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+      --header-shadow: 0 4px 20px rgba(74, 156, 130, 0.25);
     }
     
     * {
@@ -26,7 +28,7 @@
     }
     
     body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      font-family: 'Open Sans', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       background: var(--background-gradient);
       min-height: 100vh;
       padding: 20px;
@@ -36,46 +38,135 @@
       line-height: 1.6;
     }
     
+    /* Enhanced Header Section */
     .header {
       text-align: center;
-      margin-bottom: 20px;
-      padding: 20px;
-      border-radius: 15px;
+      margin: 0 auto 30px;
+      padding: 30px 40px;
+      border-radius: 18px;
       background: white;
-      box-shadow: var(--shadow);
+      box-shadow: var(--header-shadow);
       max-width: 800px;
-      margin: 0 auto 25px;
       width: 100%;
+      position: relative;
+      overflow: hidden;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    
+    .header:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 8px 30px rgba(74, 156, 130, 0.35);
+    }
+    
+    .header::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 5px;
+      background: var(--header-gradient);
     }
     
     .logo-container {
       display: flex;
       justify-content: center;
-      margin-bottom: 15px;
+      margin-bottom: 20px;
+      position: relative;
+    }
+    
+    .logo-border {
+      width: 110px;
+      height: 110px;
+      border-radius: 50%;
+      background: var(--header-gradient);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 5px 15px rgba(74, 156, 130, 0.3);
+      transition: transform 0.3s ease;
+    }
+    
+    .logo-border:hover {
+      transform: scale(1.05);
     }
     
     .logo {
-      width: 90px;
-      height: 90px;
+      width: 100px;
+      height: 100px;
       border-radius: 50%;
       object-fit: cover;
-      border: 3px solid var(--primary-green);
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+      border: 3px solid white;
+      box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
     }
     
     h1 {
-      font-size: 1.8rem;
+      font-family: 'Poppins', sans-serif;
+      font-size: 2.2rem;
       color: var(--primary-green);
       margin-bottom: 8px;
       font-weight: 700;
+      letter-spacing: -0.5px;
+      position: relative;
+      display: inline-block;
+    }
+    
+    h1::after {
+      content: '';
+      position: absolute;
+      bottom: -10px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 80px;
+      height: 4px;
+      background: var(--header-gradient);
+      border-radius: 2px;
     }
     
     .subtitle {
-      font-size: 1.1rem;
+      font-size: 1.2rem;
       color: #5a6b6a;
       font-weight: 500;
+      margin-top: 20px;
+      max-width: 600px;
+      margin-left: auto;
+      margin-right: auto;
+      line-height: 1.7;
+      position: relative;
+      padding: 0 20px;
     }
     
+    .subtitle::before,
+    .subtitle::after {
+      content: "✧";
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--primary-green);
+      font-size: 1.4rem;
+    }
+    
+    .subtitle::before {
+      left: 0;
+    }
+    
+    .subtitle::after {
+      right: 0;
+    }
+    
+    .tagline {
+      background: var(--bot-bubble);
+      display: inline-block;
+      padding: 8px 20px;
+      border-radius: 30px;
+      font-size: 0.95rem;
+      color: #4a5c48;
+      margin-top: 15px;
+      font-weight: 600;
+      border: 1px solid rgba(74, 156, 130, 0.2);
+    }
+    
+    /* Chat Container */
     #chat-container {
       flex-grow: 1;
       display: flex;
@@ -83,9 +174,9 @@
       max-width: 800px;
       margin: 0 auto;
       width: 100%;
-      height: calc(100vh - 230px);
+      height: calc(100vh - 280px);
       background: white;
-      border-radius: 15px;
+      border-radius: 18px;
       box-shadow: var(--shadow);
       overflow: hidden;
       border: 1px solid var(--silver);
@@ -112,8 +203,10 @@
     }
     
     .chat-title {
+      font-family: 'Poppins', sans-serif;
       font-weight: 600;
       font-size: 1.3rem;
+      letter-spacing: -0.3px;
     }
     
     #chatbox {
@@ -176,6 +269,7 @@
       background: var(--milk);
       outline: none;
       transition: all 0.3s ease;
+      font-family: 'Open Sans', sans-serif;
     }
     
     #question:focus {
@@ -197,6 +291,7 @@
       align-items: center;
       gap: 10px;
       box-shadow: 0 4px 10px rgba(74, 156, 130, 0.3);
+      font-family: 'Poppins', sans-serif;
     }
     
     #submitBtn:hover {
@@ -232,6 +327,7 @@
       align-items: center;
       justify-content: center;
       gap: 12px;
+      font-family: 'Poppins', sans-serif;
     }
     
     #downloadBtn:hover {
@@ -283,15 +379,30 @@
       }
       
       .header {
-        padding: 15px;
+        padding: 25px 20px;
       }
       
       h1 {
-        font-size: 1.6rem;
+        font-size: 1.8rem;
+      }
+      
+      .subtitle {
+        font-size: 1.05rem;
+        padding: 0 15px;
+      }
+      
+      .logo-border {
+        width: 100px;
+        height: 100px;
+      }
+      
+      .logo {
+        width: 90px;
+        height: 90px;
       }
       
       #chat-container {
-        height: calc(100vh - 210px);
+        height: calc(100vh - 250px);
       }
       
       .message {
@@ -318,17 +429,37 @@
     }
     
     @media (max-width: 480px) {
+      .header {
+        padding: 20px 15px;
+      }
+      
+      h1 {
+        font-size: 1.6rem;
+      }
+      
+      .subtitle {
+        font-size: 1rem;
+        padding: 0 10px;
+      }
+      
+      .logo-border {
+        width: 85px;
+        height: 85px;
+      }
+      
       .logo {
         width: 75px;
         height: 75px;
       }
       
-      h1 {
-        font-size: 1.4rem;
+      .subtitle::before,
+      .subtitle::after {
+        font-size: 1.1rem;
       }
       
-      .subtitle {
-        font-size: 0.95rem;
+      h1::after {
+        width: 60px;
+        bottom: -8px;
       }
       
       #chat-header {
@@ -364,10 +495,13 @@
 <body>
   <div class="header">
     <div class="logo-container">
-      <img src="https://lifelightfoundation.wordpress.com/wp-content/uploads/2025/07/chatgpt-image-jul-26-2025-10_55_03-am.png" alt="Dalswin School Logo" class="logo">
+      <div class="logo-border">
+        <img src="https://lifelightfoundation.wordpress.com/wp-content/uploads/2025/07/chatgpt-image-jul-26-2025-10_55_03-am.png" alt="Dalswin School Logo" class="logo">
+      </div>
     </div>
     <h1>Dalswin School Chatbot</h1>
-    <p class="subtitle">Your 24/7 educational assistant</p>
+    <p class="subtitle">Your intelligent educational assistant for 24/7 learning support</p>
+    <div class="tagline">Ask anything about your studies!</div>
   </div>
   
   <div id="chat-container">
