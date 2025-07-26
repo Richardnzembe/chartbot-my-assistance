@@ -1,120 +1,418 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Dalswin School Chatbot</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
+    :root {
+      --primary-green: #4a9c82;
+      --light-green: #8ac6b0;
+      --silver: #e0e0e0;
+      --milk: #f9f9f9;
+      --dark-text: #2c3e50;
+      --user-bubble: #4a9c82;
+      --bot-bubble: #e8f4ef;
+      --header-gradient: linear-gradient(135deg, var(--primary-green) 0%, var(--light-green) 100%);
+      --background-gradient: linear-gradient(135deg, var(--silver) 0%, var(--milk) 100%);
+      --shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+    }
+    
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    
     body {
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: #f0f4f8;
+      background: var(--background-gradient);
+      min-height: 100vh;
       padding: 20px;
       display: flex;
       flex-direction: column;
-      height: 100vh;
-      margin: 0;
+      color: var(--dark-text);
+      line-height: 1.6;
     }
-    h1 {
+    
+    .header {
       text-align: center;
-      color: #0057b7;
-      margin-bottom: 10px;
+      margin-bottom: 20px;
+      padding: 20px;
+      border-radius: 15px;
+      background: white;
+      box-shadow: var(--shadow);
+      max-width: 800px;
+      margin: 0 auto 25px;
+      width: 100%;
     }
+    
+    .logo-container {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 15px;
+    }
+    
+    .logo {
+      width: 90px;
+      height: 90px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 3px solid var(--primary-green);
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    }
+    
+    h1 {
+      font-size: 1.8rem;
+      color: var(--primary-green);
+      margin-bottom: 8px;
+      font-weight: 700;
+    }
+    
+    .subtitle {
+      font-size: 1.1rem;
+      color: #5a6b6a;
+      font-weight: 500;
+    }
+    
+    #chat-container {
+      flex-grow: 1;
+      display: flex;
+      flex-direction: column;
+      max-width: 800px;
+      margin: 0 auto;
+      width: 100%;
+      height: calc(100vh - 230px);
+      background: white;
+      border-radius: 15px;
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      border: 1px solid var(--silver);
+    }
+    
+    #chat-header {
+      padding: 16px 25px;
+      background: var(--header-gradient);
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      color: white;
+    }
+    
+    .chat-icon {
+      width: 40px;
+      height: 40px;
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+    }
+    
+    .chat-title {
+      font-weight: 600;
+      font-size: 1.3rem;
+    }
+    
     #chatbox {
       flex-grow: 1;
-      background: #fff;
-      border-radius: 10px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-      padding: 20px;
-      max-height: 500px;
+      padding: 25px;
       overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      background: var(--milk);
+    }
+    
+    .message {
+      max-width: 85%;
+      padding: 16px 20px;
+      border-radius: 18px;
+      position: relative;
+      animation: fadeIn 0.3s ease-out;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
       line-height: 1.5;
       word-wrap: break-word;
     }
-    .message {
-      margin-bottom: 15px;
-      max-width: 75%;
-      clear: both;
+    
+    .user {
+      background: var(--user-bubble);
+      color: white;
+      align-self: flex-end;
+      border-bottom-right-radius: 5px;
     }
+    
+    .bot {
+      background: var(--bot-bubble);
+      color: var(--dark-text);
+      align-self: flex-start;
+      border-bottom-left-radius: 5px;
+    }
+    
     .message strong {
       display: block;
-      margin-bottom: 6px;
+      margin-bottom: 8px;
       font-weight: 600;
-      font-size: 0.9em;
-      opacity: 0.7;
+      font-size: 0.92em;
+      opacity: 0.9;
     }
-    .message.user {
-      background-color: #0057b7;
-      color: white;
-      padding: 12px 15px;
-      border-radius: 20px 20px 0 20px;
-      float: right;
-      text-align: right;
-    }
-    .message.bot {
-      background-color: #f0f0f0;
-      color: #333;
-      padding: 12px 15px;
-      border-radius: 20px 20px 20px 0;
-      float: left;
-      white-space: pre-line; /* preserve line breaks */
-    }
+    
     #inputForm {
+      padding: 18px 25px;
+      background: white;
+      border-top: 1px solid var(--silver);
       display: flex;
-      gap: 10px;
-      margin-top: 15px;
+      gap: 15px;
     }
+    
     #question {
       flex: 1;
-      padding: 10px;
+      padding: 14px 20px;
       font-size: 16px;
-      border-radius: 5px;
-      border: 2px solid #0057b7;
+      border-radius: 30px;
+      border: 2px solid var(--silver);
+      background: var(--milk);
+      outline: none;
+      transition: all 0.3s ease;
     }
-    #submitBtn, #downloadBtn {
-      padding: 10px 20px;
-      background: #0057b7;
+    
+    #question:focus {
+      border-color: var(--primary-green);
+      box-shadow: 0 0 0 3px rgba(74, 156, 130, 0.2);
+    }
+    
+    #submitBtn {
+      padding: 14px 28px;
+      background: var(--primary-green);
       color: white;
       border: none;
       font-size: 16px;
-      border-radius: 5px;
+      border-radius: 30px;
       cursor: pointer;
-      transition: background 0.3s ease;
+      transition: all 0.3s ease;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      box-shadow: 0 4px 10px rgba(74, 156, 130, 0.3);
     }
-    #submitBtn:hover, #downloadBtn:hover {
-      background: #004099;
+    
+    #submitBtn:hover {
+      background: #3e8a71;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 12px rgba(74, 156, 130, 0.4);
     }
+    
+    #submitBtn:active {
+      transform: translateY(0);
+    }
+    
+    #submitBtn i {
+      font-size: 18px;
+    }
+    
     #downloadBtn {
-      margin-top: 10px;
-      align-self: flex-end;
-      width: 200px;
+      display: block;
+      margin: 25px auto 0;
+      padding: 14px 35px;
+      background: var(--primary-green);
+      color: white;
+      border: none;
+      font-size: 16px;
+      border-radius: 30px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-weight: 600;
+      max-width: 300px;
+      width: 100%;
+      box-shadow: var(--shadow);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+    }
+    
+    #downloadBtn:hover {
+      background: #3e8a71;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 12px rgba(74, 156, 130, 0.4);
+    }
+    
+    .typing-indicator {
+      display: flex;
+      align-items: center;
+      padding: 16px 20px;
+      background: var(--bot-bubble);
+      border-radius: 18px;
+      align-self: flex-start;
+      border-bottom-left-radius: 5px;
+      max-width: 120px;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+    }
+    
+    .typing-dot {
+      width: 10px;
+      height: 10px;
+      background-color: var(--primary-green);
+      border-radius: 50%;
+      margin: 0 4px;
+      opacity: 0.6;
+      animation: typing 1.4s infinite ease-in-out;
+    }
+    
+    .typing-dot:nth-child(1) { animation-delay: 0s; }
+    .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+    .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+    
+    @keyframes typing {
+      0%, 60%, 100% { transform: translateY(0); }
+      30% { transform: translateY(-5px); opacity: 1; }
+    }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    /* Responsive design */
+    @media (max-width: 768px) {
+      body {
+        padding: 15px;
+      }
+      
+      .header {
+        padding: 15px;
+      }
+      
+      h1 {
+        font-size: 1.6rem;
+      }
+      
+      #chat-container {
+        height: calc(100vh - 210px);
+      }
+      
+      .message {
+        max-width: 90%;
+      }
+      
+      #inputForm {
+        padding: 15px;
+        flex-wrap: wrap;
+      }
+      
+      #question {
+        min-width: 100%;
+        order: 1;
+        padding: 12px 18px;
+      }
+      
+      #submitBtn {
+        min-width: 100%;
+        order: 2;
+        justify-content: center;
+        padding: 12px 20px;
+      }
+    }
+    
+    @media (max-width: 480px) {
+      .logo {
+        width: 75px;
+        height: 75px;
+      }
+      
+      h1 {
+        font-size: 1.4rem;
+      }
+      
+      .subtitle {
+        font-size: 0.95rem;
+      }
+      
+      #chat-header {
+        padding: 14px 20px;
+      }
+      
+      .chat-title {
+        font-size: 1.15rem;
+      }
+      
+      .chat-icon {
+        width: 35px;
+        height: 35px;
+        font-size: 16px;
+      }
+      
+      #chatbox {
+        padding: 20px 15px;
+      }
+      
+      .message {
+        padding: 14px 16px;
+        font-size: 0.95rem;
+      }
+      
+      #downloadBtn {
+        padding: 12px 25px;
+        font-size: 15px;
+      }
     }
   </style>
 </head>
 <body>
-  <h1>Dalswin School Chatbot</h1>
-  <div id="chatbox"></div>
-
-  <form id="inputForm">
-    <input
-      type="text"
-      id="question"
-      placeholder="Ask your school question..."
-      maxlength="500"
-      autocomplete="off"
-      required
-    />
-    <button type="submit" id="submitBtn">Ask</button>
-  </form>
-
-  <button id="downloadBtn">Download Conversation</button>
+  <div class="header">
+    <div class="logo-container">
+      <img src="https://lifelightfoundation.wordpress.com/wp-content/uploads/2025/07/chatgpt-image-jul-26-2025-10_55_03-am.png" alt="Dalswin School Logo" class="logo">
+    </div>
+    <h1>Dalswin School Chatbot</h1>
+    <p class="subtitle">Your 24/7 educational assistant</p>
+  </div>
+  
+  <div id="chat-container">
+    <div id="chat-header">
+      <div class="chat-icon">
+        <i class="fas fa-graduation-cap"></i>
+      </div>
+      <div class="chat-title">School Assistant</div>
+    </div>
+    
+    <div id="chatbox">
+      <div class="message bot">
+        <strong>School Assistant:</strong>
+        Hello! I'm your Dalswin School assistant. How can I help you with your studies today?
+      </div>
+    </div>
+    
+    <form id="inputForm">
+      <input
+        type="text"
+        id="question"
+        placeholder="Ask your school question..."
+        maxlength="500"
+        autocomplete="off"
+        required
+      />
+      <button type="submit" id="submitBtn">
+        <i class="fas fa-paper-plane"></i> Send
+      </button>
+    </form>
+  </div>
+  
+  <button id="downloadBtn">
+    <i class="fas fa-download"></i> Download Conversation
+  </button>
 
   <script>
     const chatbox = document.getElementById('chatbox');
     const form = document.getElementById('inputForm');
     const input = document.getElementById('question');
     const downloadBtn = document.getElementById('downloadBtn');
+    const submitBtn = document.getElementById('submitBtn');
 
     const messages = [];
+    let isBotTyping = false;
 
     // Escape HTML to prevent injection
     function escapeHTML(str) {
@@ -128,6 +426,31 @@
         };
         return escapeMap[match];
       });
+    }
+
+    function showTypingIndicator() {
+      if (isBotTyping) return;
+      
+      isBotTyping = true;
+      const typingDiv = document.createElement('div');
+      typingDiv.className = 'typing-indicator';
+      typingDiv.id = 'typing-indicator';
+      typingDiv.innerHTML = `
+        <div class="typing-dot"></div>
+        <div class="typing-dot"></div>
+        <div class="typing-dot"></div>
+      `;
+      
+      chatbox.appendChild(typingDiv);
+      chatbox.scrollTop = chatbox.scrollHeight;
+    }
+
+    function hideTypingIndicator() {
+      isBotTyping = false;
+      const typingIndicator = document.getElementById('typing-indicator');
+      if (typingIndicator) {
+        typingIndicator.remove();
+      }
     }
 
     function appendMessage(sender, text, className) {
@@ -146,10 +469,7 @@
       chatbox.appendChild(msg);
 
       // Smooth scroll to bottom
-      chatbox.scrollTo({
-        top: chatbox.scrollHeight,
-        behavior: 'smooth'
-      });
+      chatbox.scrollTop = chatbox.scrollHeight;
 
       messages.push({ sender, text });
     }
@@ -162,9 +482,12 @@
       appendMessage('You', question, 'user');
       input.value = '';
       input.disabled = true;
-      document.getElementById('submitBtn').disabled = true;
+      submitBtn.disabled = true;
+      
+      showTypingIndicator();
 
       try {
+        // Using your actual API endpoint
         const response = await fetch('https://chartbot-production.up.railway.app/chat', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -172,13 +495,16 @@
         });
 
         const data = await response.json();
-        appendMessage('Bot', data.answer || '⚠️ No response.', 'bot');
+        
+        hideTypingIndicator();
+        appendMessage('School Assistant', data.answer || 'I couldn\'t find an answer to that question.', 'bot');
       } catch (err) {
-        appendMessage('Bot', '❌ Error connecting to the server.', 'bot');
+        hideTypingIndicator();
+        appendMessage('School Assistant', '❌ Error connecting to the server. Please try again.', 'bot');
         console.error(err);
       } finally {
         input.disabled = false;
-        document.getElementById('submitBtn').disabled = false;
+        submitBtn.disabled = false;
         input.focus();
       }
     });
@@ -190,6 +516,7 @@
       }
 
       try {
+        // Using your actual API endpoint
         const response = await fetch('https://chartbot-production.up.railway.app/download', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -202,14 +529,17 @@
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = 'school_chatbot_notes.docx';
+        a.download = 'dalswin_chatbot_conversation.docx';
         a.click();
         window.URL.revokeObjectURL(url);
       } catch (err) {
         console.error('Download failed:', err);
-        alert('Failed to download the chat.');
+        alert('Failed to download the chat. Please try again later.');
       }
     });
+    
+    // Focus input on load
+    input.focus();
   </script>
 </body>
 </html>
