@@ -6,6 +6,9 @@
   <title>Dalswin School Chatbot</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
+  <!-- Firebase App (the core Firebase SDK) and Auth SDK -->
+  <script src="https://www.gstatic.com/firebasejs/10.13.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.13.1/firebase-auth-compat.js"></script>
   <style>
     :root {
       --primary-green: #4a9c82;
@@ -19,14 +22,15 @@
       --background-gradient: linear-gradient(135deg, var(--silver) 0%, var(--milk) 100%);
       --shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
       --header-shadow: 0 4px 20px rgba(74, 156, 130, 0.25);
+      --message-font-size: 1.05rem;
+      --error-color: #e74c3c;
+      --link-color: #2980b9;
     }
-    
     * {
       box-sizing: border-box;
       margin: 0;
       padding: 0;
     }
-    
     body {
       font-family: 'Open Sans', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       background: var(--background-gradient);
@@ -37,27 +41,175 @@
       color: var(--dark-text);
       line-height: 1.6;
     }
-    
+
+    /* --- Login Screen --- */
+    #login-screen {
+        display: none; /* Hidden by default, shown via JS */
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        max-width: 900px;
+        margin: 0 auto;
+        padding: 40px 20px;
+        background: white;
+        border-radius: 18px;
+        box-shadow: var(--shadow);
+        text-align: center;
+    }
+    #login-screen.active {
+        display: flex; /* Show when active class is added */
+    }
+    .login-logo-container {
+        display: flex;
+        justify-content: center;
+        margin-bottom: 30px;
+    }
+    .login-logo-border {
+        width: 100px;
+        height: 100px;
+        border-radius: 50%;
+        background: var(--header-gradient);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 5px 15px rgba(74, 156, 130, 0.3);
+    }
+    .login-logo {
+        width: 90px;
+        height: 90px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 3px solid white;
+        box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+    }
+    #login-screen h2 {
+        font-family: 'Poppins', sans-serif;
+        font-size: 2rem;
+        color: var(--primary-green);
+        margin-bottom: 10px;
+        font-weight: 700;
+    }
+    #login-screen p {
+        color: #5a6b6a;
+        margin-bottom: 30px;
+        max-width: 500px;
+    }
+    #login-form {
+       width: 100%;
+       max-width: 400px;
+    }
+    .form-group {
+        margin-bottom: 20px;
+        text-align: left;
+    }
+    .form-group label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 500;
+        color: var(--dark-text);
+    }
+    .form-group input {
+        width: 100%;
+        padding: 14px;
+        border: 2px solid var(--silver);
+        border-radius: 12px;
+        font-size: 1rem;
+        font-family: 'Open Sans', sans-serif;
+        transition: border-color 0.3s ease;
+        outline: none;
+        background: var(--milk);
+    }
+    .form-group input:focus {
+        border-color: var(--primary-green);
+        box-shadow: 0 0 0 3px rgba(74, 156, 130, 0.2);
+    }
+    #login-btn {
+        width: 100%;
+        padding: 14px;
+        background: var(--primary-green);
+        color: white;
+        border: none;
+        border-radius: 12px;
+        font-size: 1.1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background-color 0.3s ease, transform 0.2s ease;
+        font-family: 'Poppins', sans-serif;
+        box-shadow: 0 4px 10px rgba(74, 156, 130, 0.3);
+    }
+    #login-btn:hover {
+        background: #3e8a71;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 12px rgba(74, 156, 130, 0.4);
+    }
+    #login-btn:disabled {
+        background: #cccccc;
+        cursor: not-allowed;
+        transform: none;
+        box-shadow: none;
+    }
+    #login-error {
+        color: var(--error-color);
+        margin-top: 15px;
+        min-height: 20px; /* Prevent layout shift */
+    }
+    .login-footer {
+        margin-top: 25px;
+        font-size: 0.95rem;
+        color: #5a6b6a;
+    }
+    .login-footer a {
+        color: var(--link-color);
+        text-decoration: none;
+        font-weight: 600;
+        transition: color 0.2s ease;
+    }
+    .login-footer a:hover {
+        color: var(--primary-green);
+        text-decoration: underline;
+    }
+    #forgot-password {
+        background: none;
+        border: none;
+        color: var(--link-color);
+        text-decoration: underline;
+        cursor: pointer;
+        font-size: 0.9rem;
+        margin-top: 10px;
+        padding: 0;
+        font-family: 'Open Sans', sans-serif;
+    }
+    #forgot-password:hover {
+        color: var(--primary-green);
+    }
+
+
+    /* --- Main Chat Interface --- */
+    #main-container {
+        display: none; /* Hidden by default, shown via JS */
+        flex-direction: column;
+        width: 100%;
+        max-width: 900px;
+        margin: 0 auto;
+        flex-grow: 1;
+    }
+    #main-container.active {
+        display: flex; /* Show when active class is added */
+    }
+
     /* Enhanced Header Section */
     .header {
       text-align: center;
-      margin: 0 auto 30px;
-      padding: 30px 40px;
+      margin: 0 auto 25px;
+      padding: 25px 40px;
       border-radius: 18px;
       background: white;
       box-shadow: var(--header-shadow);
-      max-width: 800px;
       width: 100%;
       position: relative;
       overflow: hidden;
-      transition: transform 0.3s ease, box-shadow 0.3s ease;
     }
-    
-    .header:hover {
-      transform: translateY(-5px);
-      box-shadow: 0 8px 30px rgba(74, 156, 130, 0.35);
-    }
-    
     .header::before {
       content: '';
       position: absolute;
@@ -67,42 +219,33 @@
       height: 5px;
       background: var(--header-gradient);
     }
-    
     .logo-container {
       display: flex;
       justify-content: center;
       margin-bottom: 20px;
       position: relative;
     }
-    
     .logo-border {
-      width: 110px;
-      height: 110px;
+      width: 100px;
+      height: 100px;
       border-radius: 50%;
       background: var(--header-gradient);
       display: flex;
       align-items: center;
       justify-content: center;
       box-shadow: 0 5px 15px rgba(74, 156, 130, 0.3);
-      transition: transform 0.3s ease;
     }
-    
-    .logo-border:hover {
-      transform: scale(1.05);
-    }
-    
     .logo {
-      width: 100px;
-      height: 100px;
+      width: 90px;
+      height: 90px;
       border-radius: 50%;
       object-fit: cover;
       border: 3px solid white;
       box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
     }
-    
     h1 {
       font-family: 'Poppins', sans-serif;
-      font-size: 2.2rem;
+      font-size: 2.1rem;
       color: var(--primary-green);
       margin-bottom: 8px;
       font-weight: 700;
@@ -110,7 +253,6 @@
       position: relative;
       display: inline-block;
     }
-    
     h1::after {
       content: '';
       position: absolute;
@@ -122,9 +264,8 @@
       background: var(--header-gradient);
       border-radius: 2px;
     }
-    
     .subtitle {
-      font-size: 1.2rem;
+      font-size: 1.15rem;
       color: #5a6b6a;
       font-weight: 500;
       margin-top: 20px;
@@ -135,62 +276,33 @@
       position: relative;
       padding: 0 20px;
     }
-    
-    .subtitle::before,
-    .subtitle::after {
-      content: "✧";
-      position: absolute;
-      top: 50%;
-      transform: translateY(-50%);
-      color: var(--primary-green);
-      font-size: 1.4rem;
-    }
-    
-    .subtitle::before {
-      left: 0;
-    }
-    
-    .subtitle::after {
-      right: 0;
-    }
-    
-    .tagline {
-      background: var(--bot-bubble);
-      display: inline-block;
-      padding: 8px 20px;
-      border-radius: 30px;
-      font-size: 0.95rem;
-      color: #4a5c48;
-      margin-top: 15px;
-      font-weight: 600;
-      border: 1px solid rgba(74, 156, 130, 0.2);
-    }
-    
-    /* Chat Container */
+    /* Chat Container - Larger Display Area */
     #chat-container {
       flex-grow: 1;
       display: flex;
       flex-direction: column;
-      max-width: 800px;
-      margin: 0 auto;
       width: 100%;
-      height: calc(100vh - 280px);
+      height: 70vh;
       background: white;
       border-radius: 18px;
       box-shadow: var(--shadow);
       overflow: hidden;
       border: 1px solid var(--silver);
     }
-    
     #chat-header {
       padding: 16px 25px;
       background: var(--header-gradient);
       display: flex;
       align-items: center;
+      justify-content: space-between; /* Distribute items */
       gap: 15px;
       color: white;
     }
-    
+    .chat-header-left {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+    }
     .chat-icon {
       width: 40px;
       height: 40px;
@@ -201,89 +313,126 @@
       justify-content: center;
       font-size: 20px;
     }
-    
     .chat-title {
       font-family: 'Poppins', sans-serif;
       font-weight: 600;
       font-size: 1.3rem;
       letter-spacing: -0.3px;
     }
-    
+    #logoutBtn {
+        padding: 8px 16px;
+        background: rgba(255, 255, 255, 0.2);
+        color: white;
+        border: 1px solid rgba(255, 255, 255, 0.5);
+        border-radius: 20px;
+        cursor: pointer;
+        font-size: 0.9rem;
+        font-weight: 500;
+        transition: background-color 0.3s ease;
+        font-family: 'Poppins', sans-serif;
+    }
+    #logoutBtn:hover {
+        background: rgba(255, 255, 255, 0.3);
+    }
+
+    /* Enhanced Chat Display Area */
     #chatbox {
       flex-grow: 1;
       padding: 25px;
       overflow-y: auto;
       display: flex;
       flex-direction: column;
-      gap: 20px;
+      gap: 25px;
       background: var(--milk);
     }
-    
     .message {
-      max-width: 85%;
-      padding: 16px 20px;
+      max-width: 90%;
+      padding: 20px;
       border-radius: 18px;
       position: relative;
       animation: fadeIn 0.3s ease-out;
-      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
-      line-height: 1.5;
+      box-shadow: 0 3px 8px rgba(0, 0, 0, 0.05);
+      line-height: 1.65;
       word-wrap: break-word;
+      font-size: var(--message-font-size);
     }
-    
     .user {
       background: var(--user-bubble);
       color: white;
       align-self: flex-end;
       border-bottom-right-radius: 5px;
     }
-    
     .bot {
       background: var(--bot-bubble);
       color: var(--dark-text);
       align-self: flex-start;
       border-bottom-left-radius: 5px;
+      border: 1px solid rgba(0, 0, 0, 0.05);
     }
-    
     .message strong {
       display: block;
-      margin-bottom: 8px;
+      margin-bottom: 10px;
       font-weight: 600;
-      font-size: 0.92em;
-      opacity: 0.9;
+      font-size: 1.05em;
+      opacity: 0.95;
     }
-    
+    .bot .message-content {
+      font-size: 1.1rem;
+      line-height: 1.7;
+    }
+    /* Expandable Input Section */
     #inputForm {
-      padding: 18px 25px;
+      padding: 15px 25px;
       background: white;
       border-top: 1px solid var(--silver);
       display: flex;
       gap: 15px;
+      align-items: flex-end;
     }
-    
-    #question {
+    .input-container {
       flex: 1;
-      padding: 14px 20px;
-      font-size: 16px;
-      border-radius: 30px;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+    }
+    #question {
+      width: 100%;
+      min-height: 60px;
+      max-height: 200px;
+      padding: 16px 20px;
+      font-size: 1.05rem;
+      border-radius: 18px;
       border: 2px solid var(--silver);
       background: var(--milk);
       outline: none;
       transition: all 0.3s ease;
       font-family: 'Open Sans', sans-serif;
+      resize: none;
+      overflow-y: auto;
+      line-height: 1.6;
     }
-    
     #question:focus {
       border-color: var(--primary-green);
       box-shadow: 0 0 0 3px rgba(74, 156, 130, 0.2);
     }
-    
+    .input-footer {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 8px;
+      font-size: 0.85rem;
+      color: #777;
+      padding: 0 5px;
+    }
+    .char-count {
+      font-weight: 500;
+    }
     #submitBtn {
-      padding: 14px 28px;
+      padding: 16px 28px;
       background: var(--primary-green);
       color: white;
       border: none;
       font-size: 16px;
-      border-radius: 30px;
+      border-radius: 18px;
       cursor: pointer;
       transition: all 0.3s ease;
       font-weight: 600;
@@ -292,26 +441,30 @@
       gap: 10px;
       box-shadow: 0 4px 10px rgba(74, 156, 130, 0.3);
       font-family: 'Poppins', sans-serif;
+      height: 60px;
+      margin-bottom: 5px;
     }
-    
     #submitBtn:hover {
       background: #3e8a71;
       transform: translateY(-2px);
       box-shadow: 0 6px 12px rgba(74, 156, 130, 0.4);
     }
-    
     #submitBtn:active {
       transform: translateY(0);
     }
-    
+    #submitBtn:disabled {
+        background: #cccccc;
+        cursor: not-allowed;
+        transform: none;
+        box-shadow: none;
+    }
     #submitBtn i {
       font-size: 18px;
     }
-    
     #downloadBtn {
       display: block;
       margin: 25px auto 0;
-      padding: 14px 35px;
+      padding: 15px 35px;
       background: var(--primary-green);
       color: white;
       border: none;
@@ -329,13 +482,11 @@
       gap: 12px;
       font-family: 'Poppins', sans-serif;
     }
-    
     #downloadBtn:hover {
       background: #3e8a71;
       transform: translateY(-2px);
       box-shadow: 0 6px 12px rgba(74, 156, 130, 0.4);
     }
-    
     .typing-indicator {
       display: flex;
       align-items: center;
@@ -347,7 +498,6 @@
       max-width: 120px;
       box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
     }
-    
     .typing-dot {
       width: 10px;
       height: 10px;
@@ -357,214 +507,306 @@
       opacity: 0.6;
       animation: typing 1.4s infinite ease-in-out;
     }
-    
     .typing-dot:nth-child(1) { animation-delay: 0s; }
     .typing-dot:nth-child(2) { animation-delay: 0.2s; }
     .typing-dot:nth-child(3) { animation-delay: 0.4s; }
-    
     @keyframes typing {
       0%, 60%, 100% { transform: translateY(0); }
       30% { transform: translateY(-5px); opacity: 1; }
     }
-    
     @keyframes fadeIn {
       from { opacity: 0; transform: translateY(10px); }
       to { opacity: 1; transform: translateY(0); }
     }
-    
     /* Responsive design */
+    @media (max-width: 900px) {
+      #chat-container {
+        height: 75vh;
+      }
+      .header {
+        padding: 20px;
+      }
+      #chatbox {
+        padding: 20px;
+        gap: 20px;
+      }
+      .message {
+        padding: 18px;
+        max-width: 95%;
+      }
+    }
     @media (max-width: 768px) {
       body {
         padding: 15px;
       }
-      
-      .header {
-        padding: 25px 20px;
+      .header, #login-screen {
+        padding: 20px;
       }
-      
       h1 {
         font-size: 1.8rem;
       }
-      
       .subtitle {
         font-size: 1.05rem;
         padding: 0 15px;
       }
-      
-      .logo-border {
-        width: 100px;
-        height: 100px;
-      }
-      
-      .logo {
+      .logo-border, .login-logo-border {
         width: 90px;
         height: 90px;
       }
-      
-      #chat-container {
-        height: calc(100vh - 250px);
+      .logo, .login-logo {
+        width: 80px;
+        height: 80px;
       }
-      
-      .message {
-        max-width: 90%;
-      }
-      
       #inputForm {
         padding: 15px;
         flex-wrap: wrap;
       }
-      
-      #question {
+      .input-container {
         min-width: 100%;
         order: 1;
-        padding: 12px 18px;
       }
-      
+      #question {
+        min-height: 80px;
+        padding: 14px 18px;
+      }
       #submitBtn {
         min-width: 100%;
         order: 2;
         justify-content: center;
-        padding: 12px 20px;
+        padding: 14px 20px;
+        height: auto;
       }
     }
-    
     @media (max-width: 480px) {
-      .header {
-        padding: 20px 15px;
+      .header, #login-screen {
+        padding: 20px 12px;
       }
-      
       h1 {
         font-size: 1.6rem;
       }
-      
       .subtitle {
         font-size: 1rem;
         padding: 0 10px;
       }
-      
-      .logo-border {
-        width: 85px;
-        height: 85px;
+      .logo-border, .login-logo-border {
+        width: 80px;
+        height: 80px;
       }
-      
-      .logo {
-        width: 75px;
-        height: 75px;
+      .logo, .login-logo {
+        width: 70px;
+        height: 70px;
       }
-      
-      .subtitle::before,
-      .subtitle::after {
-        font-size: 1.1rem;
-      }
-      
       h1::after {
         width: 60px;
         bottom: -8px;
       }
-      
       #chat-header {
         padding: 14px 20px;
       }
-      
       .chat-title {
         font-size: 1.15rem;
       }
-      
       .chat-icon {
         width: 35px;
         height: 35px;
         font-size: 16px;
       }
-      
       #chatbox {
-        padding: 20px 15px;
+        padding: 15px;
       }
-      
       .message {
-        padding: 14px 16px;
-        font-size: 0.95rem;
+        padding: 16px;
+        font-size: 1rem;
       }
-      
       #downloadBtn {
-        padding: 12px 25px;
+        padding: 14px 25px;
         font-size: 15px;
       }
     }
   </style>
 </head>
 <body>
-  <div class="header">
-    <div class="logo-container">
-      <div class="logo-border">
-        <img src="https://lifelightfoundation.wordpress.com/wp-content/uploads/2025/07/chatgpt-image-jul-26-2025-10_55_03-am.png" alt="Dalswin School Logo" class="logo">
+
+  <!-- Login Screen -->
+  <div id="login-screen">
+    <div class="login-logo-container">
+      <div class="login-logo-border">
+        <img src="https://lifelightfoundation.wordpress.com/wp-content/uploads/2025/07/chatgpt-image-jul-26-2025-10_55_03-am.png" alt="Dalswin School Logo" class="login-logo">
       </div>
     </div>
-    <h1>Dalswin School Chatbot</h1>
-    <p class="subtitle">Your intelligent educational assistant for 24/7 learning support</p>
-    <div class="tagline">Ask anything about your studies!</div>
-  </div>
-  
-  <div id="chat-container">
-    <div id="chat-header">
-      <div class="chat-icon">
-        <i class="fas fa-graduation-cap"></i>
+    <h2>Welcome Back</h2>
+    <p>Please sign in to access the Dalswin School Chatbot.</p>
+    <form id="login-form">
+      <div class="form-group">
+        <label for="login-email">Email</label>
+        <input type="email" id="login-email" required autocomplete="username">
       </div>
-      <div class="chat-title">School Assistant</div>
-    </div>
-    
-    <div id="chatbox">
-      <div class="message bot">
-        <strong>School Assistant:</strong>
-        Hello! I'm your Dalswin School assistant. How can I help you with your studies today?
+      <div class="form-group">
+        <label for="login-password">Password</label>
+        <input type="password" id="login-password" required autocomplete="current-password">
+        <button type="button" id="forgot-password">Forgot Password?</button>
       </div>
-    </div>
-    
-    <form id="inputForm">
-      <input
-        type="text"
-        id="question"
-        placeholder="Ask your school question..."
-        maxlength="500"
-        autocomplete="off"
-        required
-      />
-      <button type="submit" id="submitBtn">
-        <i class="fas fa-paper-plane"></i> Send
-      </button>
+      <button type="submit" id="login-btn">Sign In</button>
+      <div id="login-error"></div>
     </form>
+    <div class="login-footer">
+      Don't have an account? <a href="https://lifelight.foundation/apply-now/" target="_blank" rel="noopener noreferrer">Sign Up Here</a>
+    </div>
   </div>
-  
-  <button id="downloadBtn">
-    <i class="fas fa-download"></i> Download Conversation
-  </button>
+
+  <!-- Main Chat Interface Container -->
+  <div id="main-container">
+    <div class="header">
+      <div class="logo-container">
+        <div class="logo-border">
+          <img src="https://lifelightfoundation.wordpress.com/wp-content/uploads/2025/07/chatgpt-image-jul-26-2025-10_55_03-am.png" alt="Dalswin School Logo" class="logo">
+        </div>
+      </div>
+      <h1>Dalswin School Chatbot</h1>
+      <p class="subtitle">Your intelligent educational assistant for 24/7 learning support</p>
+    </div>
+    <div id="chat-container">
+      <div id="chat-header">
+        <div class="chat-header-left">
+            <div class="chat-icon">
+                <i class="fas fa-graduation-cap"></i>
+            </div>
+            <div class="chat-title">School Assistant</div>
+        </div>
+        <button id="logoutBtn">Logout</button>
+      </div>
+      <div id="chatbox">
+        <div class="message bot">
+          <strong>School Assistant:</strong>
+          <div class="message-content">
+            Hello! I'm your Dalswin School assistant. How can I help you with your studies today?
+            Feel free to ask about any subject, homework, or school-related topics.
+          </div>
+        </div>
+        <div class="message bot">
+          <strong>School Assistant:</strong>
+          <div class="message-content">
+            Here's an example of a longer response to demonstrate the improved readability:
+            Photosynthesis is the process used by plants, algae, and certain bacteria to harness energy from sunlight and turn it into chemical energy. There are two main stages: light-dependent reactions and the Calvin cycle. Light-dependent reactions use energy from sunlight to produce ATP and NADPH. These energy carriers are then used in the Calvin cycle to convert carbon dioxide into glucose. This process is essential for life on Earth as it provides oxygen and forms the basis of most food chains.
+          </div>
+        </div>
+      </div>
+      <form id="inputForm">
+        <div class="input-container">
+          <textarea
+            id="question"
+            placeholder="Ask your school question or describe your assignment..."
+            maxlength="500"
+            autocomplete="off"
+            required
+          ></textarea>
+          <div class="input-footer">
+            <div class="char-count">Max 500 characters</div>
+            <div class="tip"><i class="fas fa-lightbulb"></i> Press Shift+Enter for new line</div>
+          </div>
+        </div>
+        <button type="submit" id="submitBtn">
+          <i class="fas fa-paper-plane"></i> Send
+        </button>
+      </form>
+    </div>
+    <button id="downloadBtn">
+      <i class="fas fa-download"></i> Download Conversation
+    </button>
+  </div>
 
   <script>
+    // Your web app's Firebase configuration
+    const firebaseConfig = {
+      apiKey: "AIzaSyDM1LGJdUBN8zDLCzTjjxQtkzkeUHtuCSU",
+      authDomain: "dashboard-c0263.firebaseapp.com",
+      projectId: "dashboard-c0263",
+      storageBucket: "dashboard-c0263.firebasestorage.app",
+      messagingSenderId: "177312727757",
+      appId: "1:177312727757:web:5d2d926a71eb12d503df84"
+    };
+
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+
+    // DOM Elements
+    const loginScreen = document.getElementById('login-screen');
+    const mainContainer = document.getElementById('main-container');
+    const loginForm = document.getElementById('login-form');
+    const loginEmail = document.getElementById('login-email');
+    const loginPassword = document.getElementById('login-password');
+    const loginBtn = document.getElementById('login-btn');
+    const loginError = document.getElementById('login-error');
+    const logoutBtn = document.getElementById('logoutBtn');
+    const forgotPasswordBtn = document.getElementById('forgot-password');
+
     const chatbox = document.getElementById('chatbox');
     const form = document.getElementById('inputForm');
     const input = document.getElementById('question');
     const downloadBtn = document.getElementById('downloadBtn');
     const submitBtn = document.getElementById('submitBtn');
-
+    const charCount = document.querySelector('.char-count');
     const messages = [];
     let isBotTyping = false;
 
+    // --- Fix: Escape forward slashes in regex for HTML context ---
     // Escape HTML to prevent injection
     function escapeHTML(str) {
       return str.replace(/[&<>"']/g, (match) => {
         const escapeMap = {
           '&': '&amp;',
-          '<': '&lt;',
-          '>': '&gt;',
+          '<': '<',
+          '>': '>',
           '"': '&quot;',
           "'": '&#39;',
         };
         return escapeMap[match];
       });
     }
+    // --- End of Fix ---
+
+    // Auto-resize textarea function
+    function autoResize() {
+      input.style.height = 'auto';
+      input.style.height = (input.scrollHeight) + 'px';
+      // Limit max height to 200px
+      if (input.scrollHeight > 200) {
+        input.style.overflowY = 'auto';
+      } else {
+        input.style.overflowY = 'hidden';
+      }
+    }
+
+    // Initialize textarea height
+    autoResize();
+
+    // Event listeners for textarea
+    input.addEventListener('input', autoResize);
+    input.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        if (!submitBtn.disabled) { // Only submit if not disabled
+            form.dispatchEvent(new Event('submit'));
+        }
+      }
+    });
+
+    // Character count update
+    input.addEventListener('input', function() {
+      const currentLength = input.value.length;
+      charCount.textContent = `${currentLength}/500 characters`;
+      if (currentLength > 450) {
+        charCount.style.color = '#e74c3c';
+      } else if (currentLength > 400) {
+        charCount.style.color = '#f39c12';
+      } else {
+        charCount.style.color = '#777';
+      }
+    });
 
     function showTypingIndicator() {
       if (isBotTyping) return;
-      
       isBotTyping = true;
       const typingDiv = document.createElement('div');
       typingDiv.className = 'typing-indicator';
@@ -574,7 +816,6 @@
         <div class="typing-dot"></div>
         <div class="typing-dot"></div>
       `;
-      
       chatbox.appendChild(typingDiv);
       chatbox.scrollTop = chatbox.scrollHeight;
     }
@@ -590,36 +831,131 @@
     function appendMessage(sender, text, className) {
       const msg = document.createElement('div');
       msg.className = `message ${className}`;
-
       if (className === 'bot') {
         // preserve line breaks for bot message
-        const escapedText = escapeHTML(text).replace(/\n/g, '<br>');
-        msg.innerHTML = `<strong>${sender}:</strong><br>${escapedText}`;
+        const escapedText = escapeHTML(text).replace(/\n/g, '<br>'); // Also escape \n here
+        msg.innerHTML = `<strong>${sender}:</strong><div class="message-content">${escapedText}</div>`;
       } else {
         // for user message
-        msg.innerHTML = `<strong>${sender}:</strong> ${escapeHTML(text)}`;
+        msg.innerHTML = `<strong>${sender}:</strong> <div class="message-content">${escapeHTML(text)}</div>`;
       }
-
       chatbox.appendChild(msg);
-
       // Smooth scroll to bottom
       chatbox.scrollTop = chatbox.scrollHeight;
-
       messages.push({ sender, text });
     }
+
+    // --- Authentication Logic ---
+
+    // Check auth state on page load
+    auth.onAuthStateChanged(user => {
+        if (user) {
+            // User is signed in
+            console.log("User is signed in:", user.email);
+            showMainInterface();
+        } else {
+            // User is signed out
+            console.log("No user is signed in.");
+            showLoginInterface();
+        }
+    });
+
+    // Show Login Interface
+    function showLoginInterface() {
+        loginScreen.classList.add('active');
+        mainContainer.classList.remove('active');
+        // Clear any previous error messages
+        loginError.textContent = '';
+    }
+
+    // Show Main Chat Interface
+    function showMainInterface() {
+        loginScreen.classList.remove('active');
+        mainContainer.classList.add('active');
+        // Focus input on load (or after login)
+        input.focus();
+    }
+
+    // Handle Login
+    loginForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const email = loginEmail.value.trim();
+        const password = loginPassword.value;
+
+        if (!email || !password) {
+            loginError.textContent = 'Please enter both email and password.';
+            return;
+        }
+
+        loginBtn.disabled = true; // Disable button during login attempt
+        loginError.textContent = ''; // Clear previous errors
+
+        try {
+            await auth.signInWithEmailAndPassword(email, password);
+            // Success handled by onAuthStateChanged listener
+            console.log("Login successful");
+        } catch (error) {
+            console.error("Login error:", error);
+            let errorMessage = "Login failed. Please try again.";
+            if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
+                 errorMessage = "Invalid email or password.";
+            } else if (error.code === 'auth/invalid-email') {
+                 errorMessage = "Invalid email address format.";
+            } else if (error.code === 'auth/too-many-requests') {
+                 errorMessage = "Too many failed attempts. Try again later or reset your password.";
+            }
+            loginError.textContent = errorMessage;
+        } finally {
+             loginBtn.disabled = false; // Re-enable button
+        }
+    });
+
+    // Handle Logout
+    logoutBtn.addEventListener('click', async () => {
+        try {
+            await auth.signOut();
+            console.log("User signed out.");
+            // UI update handled by onAuthStateChanged listener
+        } catch (error) {
+            console.error("Logout error:", error);
+            alert("An error occurred during logout. Please try again.");
+        }
+    });
+
+    // Handle Password Reset
+    forgotPasswordBtn.addEventListener('click', async () => {
+         const email = prompt("Please enter your email address to receive a password reset link:");
+         if (!email) return; // User cancelled
+
+         try {
+             await auth.sendPasswordResetEmail(email);
+             alert("Password reset email sent! Please check your inbox.");
+         } catch (error) {
+             console.error("Password reset error:", error);
+             let resetErrorMessage = "Failed to send reset email. Please try again.";
+             if (error.code === 'auth/user-not-found') {
+                 resetErrorMessage = "No user found with that email address.";
+             } else if (error.code === 'auth/invalid-email') {
+                 resetErrorMessage = "Invalid email address format.";
+             }
+             alert(resetErrorMessage);
+         }
+    });
+
+    // --- Existing Chatbot Logic ---
 
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
       const question = input.value.trim();
       if (!question) return;
-
       appendMessage('You', question, 'user');
       input.value = '';
+      autoResize(); // Reset textarea height
+      charCount.textContent = "0/500 characters";
+      charCount.style.color = "#777";
       input.disabled = true;
-      submitBtn.disabled = true;
-      
+      submitBtn.disabled = true; // Disable submit button during request
       showTypingIndicator();
-
       try {
         // Using your actual API endpoint
         const response = await fetch('https://chartbot-production.up.railway.app/chat', {
@@ -627,9 +963,7 @@
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ question }),
         });
-
         const data = await response.json();
-        
         hideTypingIndicator();
         appendMessage('School Assistant', data.answer || 'I couldn\'t find an answer to that question.', 'bot');
       } catch (err) {
@@ -638,7 +972,7 @@
         console.error(err);
       } finally {
         input.disabled = false;
-        submitBtn.disabled = false;
+        submitBtn.disabled = false; // Re-enable submit button
         input.focus();
       }
     });
@@ -648,7 +982,6 @@
         alert('No conversation to download.');
         return;
       }
-
       try {
         // Using your actual API endpoint
         const response = await fetch('https://chartbot-production.up.railway.app/download', {
@@ -656,9 +989,7 @@
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ chat: messages }),
         });
-
         if (!response.ok) throw new Error('Download failed');
-
         const blob = await response.blob();
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
@@ -671,9 +1002,9 @@
         alert('Failed to download the chat. Please try again later.');
       }
     });
-    
-    // Focus input on load
-    input.focus();
+
+    // Focus input on load (handled by showMainInterface now)
+    // input.focus();
   </script>
 </body>
 </html>
