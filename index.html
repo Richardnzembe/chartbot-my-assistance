@@ -781,39 +781,66 @@
       30% { transform: translateY(-6px); opacity: 1; }
     }
 
+    /* Mobile Sidebar Toggle Button */
+    .sidebar-toggle {
+        position: absolute;
+        top: 15px;
+        left: 15px;
+        z-index: 101;
+        background: var(--primary-accent);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.2rem;
+        cursor: pointer;
+        box-shadow: var(--shadow-medium);
+        display: none; /* Hidden by default */
+    }
+    
+    /* Overlay for mobile sidebar */
+    .sidebar-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: rgba(0, 0, 0, 0.4);
+        z-index: 99;
+        display: none;
+    }
+
     /* Responsive design */
     @media (max-width: 768px) {
         .sidebar {
-            position: absolute;
+            position: fixed;
             top: 0;
             left: 0;
             bottom: 0;
             transform: translateX(-100%);
             z-index: 100;
             width: 280px;
+            transition: transform 0.3s ease;
         }
 
         .sidebar.active {
             transform: translateX(0);
         }
         
+        .sidebar-overlay.active {
+            display: block;
+        }
+        
         .sidebar-toggle {
-            position: absolute;
-            top: 15px;
-            left: 15px;
-            z-index: 101;
-            background: var(--primary-accent);
-            color: white;
-            border: none;
-            border-radius: 8px;
-            width: 40px;
-            height: 40px;
             display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.2rem;
-            cursor: pointer;
-            box-shadow: var(--shadow-medium);
+        }
+        
+        .input-container-wrapper {
+            padding: 0 15px;
         }
     }
 
@@ -941,9 +968,17 @@
                 </button>
             </div>
         </div>
+        
+        <!-- Overlay for mobile sidebar -->
+        <div class="sidebar-overlay" id="sidebar-overlay"></div>
 
         <!-- Main Chat Area -->
         <div class="main-chat-area">
+            <!-- Mobile Sidebar Toggle Button -->
+            <button class="sidebar-toggle" id="sidebar-toggle">
+                <i class="fas fa-bars"></i>
+            </button>
+            
             <div id="chatbox">
                 <div class="message bot">
                     <div class="message-content-wrapper">
@@ -1046,6 +1081,11 @@
     const submitBtn = document.getElementById('submitBtn');
     const messages = [];
     let isBotTyping = false;
+    
+    // Mobile sidebar toggle elements
+    const sidebarToggle = document.getElementById('sidebar-toggle');
+    const sidebar = document.querySelector('.sidebar');
+    const sidebarOverlay = document.getElementById('sidebar-overlay');
 
     // --- Firebase Email Verification System ---
     auth.onAuthStateChanged(async (user) => {
@@ -1480,6 +1520,17 @@
         setTimeout(() => {
             document.body.removeChild(downloadConfirmation);
         }, 3000);
+    });
+    
+    // --- Mobile Sidebar Toggle Logic ---
+    sidebarToggle?.addEventListener('click', () => {
+        sidebar.classList.toggle('active');
+        sidebarOverlay.classList.toggle('active');
+    });
+    
+    sidebarOverlay?.addEventListener('click', () => {
+        sidebar.classList.remove('active');
+        sidebarOverlay.classList.remove('active');
     });
   </script>
 </body>
